@@ -1,0 +1,159 @@
+body {
+    font-family: sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 20px;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+.container {
+    max-width: 1000px;
+    margin: auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+h1, h2 {
+    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#task-form {
+    margin-bottom: 30px;
+    padding: 20px;
+    background: #e9ecef;
+    border-radius: 5px;
+}
+
+#task-form div {
+    margin-bottom: 10px;
+}
+
+#task-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+#task-form input[type="text"],
+#task-form input[type="date"],
+#task-form input[type="time"],
+#task-form textarea {
+    width: calc(100% - 22px);
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+#task-form textarea {
+    resize: vertical;
+}
+
+button {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-right: 10px;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+#clear-form-btn {
+    background-color: #6c757d;
+}
+
+#clear-form-btn:hover {
+    background-color: #5a6268;
+}
+
+.filters {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 5px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+.filters label {
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.filters input[type="date"],
+.filters input[type="text"] {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+#task-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+#task-table th, #task-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+#task-table th {
+    background-color: #007bff;
+    color: white;
+}
+
+#task-table tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+#task-table .edit-btn, #task-table .delete-btn {
+    padding: 5px 10px;
+    font-size: 14px;
+    margin-right: 5px;
+}
+
+#task-table .edit-btn {
+    background-color: #ffc107; /* Yellow */
+    color: #333;
+}
+#task-table .edit-btn:hover {
+    background-color: #e0a800;
+}
+
+#task-table .delete-btn {
+    background-color: #dc3545; /* Red */
+}
+#task-table .delete-btn:hover {
+    background-color: #c82333;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #task-form div {
+        display: flex;
+        flex-direction: column;
+    }
+    .filters {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .filters input, .filters button {
+        width: calc(100% - 16px); /* Account for padding */
+        margin-bottom: 10px;
+    }
+}
