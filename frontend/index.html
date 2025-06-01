@@ -4,16 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Task Scheduler</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="/static/css/style.css">
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.css' rel='stylesheet' />
+    <link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon">
 </head>
 <body>
     <h1>Welcome to Task Scheduler</h1>
 
     <div class="container">
-        <h2>Task Form</h2>
-        <form id="task-form">
-            <input type="hidden" id="task-id">
+        <div class="tabs">
+            <button class="tab-link active" data-view="task-list-view">Task List</button>
+            <button class="tab-link" data-view="scheduler-view">Scheduler</button>
+            <button class="tab-link" data-view="calendar-view">Calendar</button>
+        </div>
+
+        <div id="scheduler-view" class="view-container" style="display: none;">
+            <h2>Task Form</h2>
+            <form id="task-form">
+                <input type="hidden" id="task-id">
 
             <div>
                 <label for="task-name">Task Title/Summary:</label>
@@ -48,10 +56,13 @@
             <button type="submit" id="save-task-btn">Save Task</button>
             <button type="button" id="clear-form-btn">Clear Form / Cancel Edit</button>
         </form>
+        </div>
 
-        <h2>Current Tasks</h2>
-        <div class="filters">
-            <label for="filter-date">Filter by Date:</label>
+        <div id="task-list-view" class="view-container">
+            <h2>Current Tasks</h2>
+            <button id="go-to-scheduler-btn" class="action-button">Create New Schedule</button>
+            <div class="filters">
+                <label for="filter-date">Filter by Date:</label>
             <input type="date" id="filter-date">
             <label for="filter-week">Filter by Week:</label>
             <input type="week" id="filter-week">
@@ -79,12 +90,16 @@
                 <!-- Task rows will be inserted here by JavaScript -->
             </tbody>
         </table>
+        </div>
 
-        <h2>Task Calendar</h2>
-        <div id='calendar'></div>
+        <div id="calendar-view" class="view-container" style="display: none;">
+            <h2>Task Calendar</h2>
+<div class="custom-calendar-controls" style="margin-bottom: 15px; text-align: center;">     <label for="month-select" style="margin-right: 5px;">Month:</label>     <select id="month-select" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; margin-right: 15px;"></select>     <label for="year-select" style="margin-right: 5px;">Year:</label>     <select id="year-select" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></select> </div>
+            <div id='calendar'></div>
+        </div>
     </div>
 
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/main.min.js'></script>
-    <script src="js/app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+    <script src="/static/js/app.js"></script>
 </body>
 </html>

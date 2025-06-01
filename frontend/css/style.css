@@ -1,159 +1,211 @@
+/* Basic Reset & Font */
 body {
-    font-family: sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
     margin: 0;
-    padding: 20px;
-    background-color: #f4f4f4;
+    padding: 0;
+    background-color: #f4f7f6; /* Light neutral background */
     color: #333;
 }
 
 .container {
-    max-width: 1000px;
-    margin: auto;
-    background: #fff;
+    width: 90%;
+    max-width: 1200px; /* Max width for content */
+    margin: 20px auto; /* Centering and top/bottom margin */
     padding: 20px;
+    background-color: #fff; /* White background for content area */
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
     border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
 h1, h2 {
-    color: #333;
+    color: #2c3e50; /* Dark blue-gray for headings */
+    margin-bottom: 0.75em;
+}
+h1 {
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 1em;
+}
+h2 {
+    border-bottom: 2px solid #3498db; /* Primary color accent for h2 */
+    padding-bottom: 0.3em;
 }
 
-#task-form {
-    margin-bottom: 30px;
-    padding: 20px;
-    background: #e9ecef;
-    border-radius: 5px;
+/* Form Styling */
+form div {
+    margin-bottom: 15px;
 }
-
-#task-form div {
-    margin-bottom: 10px;
-}
-
-#task-form label {
+label {
     display: block;
     margin-bottom: 5px;
     font-weight: bold;
+    color: #555;
 }
-
-#task-form input[type="text"],
-#task-form input[type="date"],
-#task-form input[type="time"],
-#task-form textarea {
-    width: calc(100% - 22px);
+input[type="text"],
+input[type="date"],
+input[type="time"],
+input[type="number"],
+textarea,
+select {
+    width: 100%;
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 4px;
-    box-sizing: border-box;
+    box-sizing: border-box; /* Important for width 100% */
 }
-
-#task-form textarea {
+textarea {
     resize: vertical;
 }
 
-button {
-    background-color: #007bff;
+/* Button Styling */
+button, .button-like { /* Added .button-like for future if needed */
+    background-color: #3498db; /* Primary button color (blue) */
     color: white;
-    padding: 10px 15px;
+    padding: 10px 20px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 16px;
-    margin-right: 10px;
+    font-size: 1em;
+    transition: background-color 0.2s ease-in-out;
+    margin-right: 5px; /* Default margin for buttons */
+}
+button:hover, .button-like:hover {
+    background-color: #2980b9; /* Darker blue on hover */
 }
 
-button:hover {
-    background-color: #0056b3;
+/* Specific button types */
+#save-task-btn { /* Already covered by general button */ }
+
+#clear-form-btn,
+#apply-filters-btn,
+#clear-filters-btn {
+    background-color: #7f8c8d; /* Secondary button color (gray) */
+}
+#clear-form-btn:hover,
+#apply-filters-btn:hover,
+#clear-filters-btn:hover {
+    background-color: #6c7a7b; /* Darker gray */
 }
 
-#clear-form-btn {
-    background-color: #6c757d;
+.delete-btn {
+    background-color: #e74c3c; /* Red for delete */
+}
+.delete-btn:hover {
+    background-color: #c0392b; /* Darker red */
 }
 
-#clear-form-btn:hover {
-    background-color: #5a6268;
+.edit-btn {
+    background-color: #f39c12; /* Orange for edit */
+}
+.edit-btn:hover {
+    background-color: #e67e22; /* Darker orange */
 }
 
-.filters {
-    margin-bottom: 20px;
-    padding: 15px;
-    background: #f8f9fa;
-    border-radius: 5px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    align-items: center;
+#go-to-scheduler-btn { /* Primary action style */
+    display: inline-block; /* Allow margin */
+    margin-bottom: 20px; /* Moved from inline style */
 }
 
-.filters label {
-    font-weight: bold;
-    margin-right: 5px;
-}
 
-.filters input[type="date"],
-.filters input[type="text"] {
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
+/* Table Styling */
 #task-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
 }
-
 #task-table th, #task-table td {
     border: 1px solid #ddd;
-    padding: 10px;
+    padding: 12px;
     text-align: left;
 }
-
 #task-table th {
-    background-color: #007bff;
+    background-color: #3498db; /* Primary color for table header */
     color: white;
 }
-
 #task-table tr:nth-child(even) {
-    background-color: #f2f2f2;
+    background-color: #f9f9f9; /* Zebra striping for rows */
+}
+#task-table tr:hover {
+    background-color: #f1f1f1; /* Row hover effect */
 }
 
-#task-table .edit-btn, #task-table .delete-btn {
-    padding: 5px 10px;
-    font-size: 14px;
+/* Filters Styling */
+.filters {
+    background-color: #ecf0f1; /* Light gray for filter section */
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    display: flex; /* For better alignment of filter items */
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    gap: 15px; /* Spacing between filter items */
+    align-items: center;
+}
+.filters label {
+    margin-bottom: 0; /* Override default label margin */
     margin-right: 5px;
 }
-
-#task-table .edit-btn {
-    background-color: #ffc107; /* Yellow */
-    color: #333;
-}
-#task-table .edit-btn:hover {
-    background-color: #e0a800;
+.filters input, .filters button {
+    margin-right: 0; /* Remove default button margin if flex gap is used */
 }
 
-#task-table .delete-btn {
-    background-color: #dc3545; /* Red */
-}
-#task-table .delete-btn:hover {
-    background-color: #c82333;
+
+/* Tab navigation styling - Update */
+.tabs {
+    margin-bottom: 20px;
+    border-bottom: 2px solid #3498db; /* Primary color for tab underline */
+    padding-bottom: 0; /* Remove padding to make buttons sit on the line */
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    #task-form div {
-        display: flex;
-        flex-direction: column;
-    }
-    .filters {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    .filters input, .filters button {
-        width: calc(100% - 16px); /* Account for padding */
-        margin-bottom: 10px;
-    }
+.tab-link {
+    background-color: transparent; /* Make tabs less prominent initially */
+    border: none; /* Remove default border */
+    border-bottom: 2px solid transparent; /* For active state indicator */
+    padding: 10px 15px;
+    cursor: pointer;
+    margin-right: 5px;
+    border-radius: 5px 5px 0 0;
+    font-size: 1.1em; /* Slightly larger font for tabs */
+    color: #555;
+    transition: color 0.2s ease-in-out, border-bottom-color 0.2s ease-in-out;
+}
+
+.tab-link:hover {
+    color: #3498db; /* Primary color on hover */
+    background-color: transparent; /* Keep background transparent on hover */
+}
+
+.tab-link.active {
+    background-color: transparent; /* Active tab doesn't need different bg */
+    border-bottom: 2px solid #3498db; /* Primary color underline for active tab */
+    font-weight: bold;
+    color: #3498db; /* Primary color for active tab text */
+}
+
+/* View container styling */
+.view-container {
+    padding-top: 20px;
+}
+
+/* Calendar specific */
+#calendar {
+    margin-top: 20px;
+}
+/* Styling for FullCalendar Buttons */
+.fc .fc-button {
+    background-color: #3498db; /* Primary button color */
+    color: white;
+    border: none;
+    padding: 6px 12px; /* Adjust padding as needed */
+    margin: 0 2px; /* Adjust margin as needed */
+    border-radius: 4px;
+    transition: background-color 0.2s ease-in-out;
+    text-transform: capitalize; /* For 'today' button if it's text */
+    line-height: 1.5; /* Ensure text is vertically centered if icons make it tricky */
+}
+.fc .fc-button:hover {
+    background-color: #2980b9; /* Darker blue on hover */
+}
+.fc .fc-button .fc-icon {
+    font-size: 1em; /* Ensure icons are reasonably sized */
+    vertical-align: middle; /* Align icons with text if any */
 }

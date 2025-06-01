@@ -4,16 +4,17 @@ import uuid
 from datetime import datetime # Added
 from dateutil.parser import isoparse # Added
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
+from cryptography.fernet import InvalidToken
 from backend.models import Task
 from backend.encryption import encrypt_data, decrypt_data
 from backend.logger import action_logger
 from backend.config import AVAILABLE_SYSTEMS, AVAILABLE_TASK_ACTIONS # Added
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'frontend'), static_url_path='/static', static_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'frontend'))
 
 tasks_db = []
-DATA_FILE = "../data/tasks.encrypted.txt"
+DATA_FILE = "data/tasks.encrypted.txt"
 
 def load_tasks_from_file():
     global tasks_db
@@ -46,12 +47,17 @@ def load_tasks_from_file():
                     continue
                 try:
                     decrypted_line = decrypt_data(line)
-                    task_data = json.loads(decrypted_line)
+                    task_data = json.loads(decrypted_line) # Ensure this is also within the try for the new structure
                     tasks_db.append(Task.from_dict(task_data))
+                except InvalidToken: # Specific exception from Fernet for bad token
+                    action_logger.error(f"Failed to decrypt line (invalid token/key mismatch, logged from app.py): {line}. Skipping task. - IP: {request.remote_addr if request else 'N/A'}")
                 except json.JSONDecodeError as e:
-                    action_logger.error(f"Error decoding JSON from line: {line}. Error: {e} - IP: {request.remote_addr if request else 'N/A'}")
-                except Exception as e:
-                    action_logger.error(f"Error processing line: {line}. Error: {e} - IP: {request.remote_addr if request else 'N/A'}")
+                    # It's good practice to log the decrypted_line if available and safe to do so,
+                    # but if decryption fails, decrypted_line might not be what you expect.
+                    # The original 'line' (encrypted) is logged by InvalidToken case.
+                    action_logger.error(f"Error decoding JSON from successfully decrypted line. Content (if available and safe): '{decrypted_line if 'decrypted_line' in locals() else 'N/A'}'. Error: {e} - IP: {request.remote_addr if request else 'N/A'}")
+                except Exception as e: # Generic catch for other decryption or Task.from_dict issues
+                    action_logger.error(f"Error processing line (post-decryption or other critical error): {line}. Error: {e} - IP: {request.remote_addr if request else 'N/A'}")
         action_logger.info(f"Tasks loaded successfully from {DATA_FILE}")
     except FileNotFoundError:
         action_logger.warning(f"Data file {DATA_FILE} not found. Starting with an empty task list. - IP: {request.remote_addr if request else 'N/A'}")
@@ -90,7 +96,7 @@ with app.app_context():
 
 @app.route('/')
 def home():
-    return "Hello from Backend!"
+    return render_template("index.html")
 
 @app.route('/api/tasks', methods=['POST'])
 def create_task():
@@ -106,6 +112,11 @@ def create_task():
             action_logger.error(f"Failed to create task: Missing required fields. Data: {data} - IP: {remote_addr}")
             return jsonify({"error": "Missing required fields"}), 400
 
+        # Validate name
+        if not data.get("name") or not data["name"].strip():
+            action_logger.error(f"Failed to create task: Name is required and cannot be empty. Data: {data} - IP: {remote_addr}")
+            return jsonify({"error": "Task name is required and cannot be empty"}), 400
+
         # Validate date format
         try:
             isoparse(data["date"])
@@ -113,6 +124,21 @@ def create_task():
             action_logger.error(f"Failed to create task: Invalid date format for {data['date']}. Data: {data} - IP: {remote_addr}")
             return jsonify({"error": "Invalid date format. Please use YYYY-MM-DD."}), 400
 
+        # Validate target system
+        if data["target_system"] not in AVAILABLE_SYSTEMS:
+            action_logger.error(f"Failed to create task: Invalid target system '{data['target_system']}'. Data: {data} - IP: {remote_addr}")
+            return jsonify({"error": f"Invalid target system: {data['target_system']}"}), 400
+
+        # Validate task action in description
+        valid_action_found = False
+        for available_action in AVAILABLE_TASK_ACTIONS:
+            if data["description"].startswith(available_action):
+                valid_action_found = True
+                break
+        if not valid_action_found:
+            desc_snippet = data["description"][:70] # Log first 70 chars for context
+            action_logger.error(f"Failed to create task: Description does not start with a valid task action. Desc: '{desc_snippet}...' - Data: {data} - IP: {remote_addr}")
+            return jsonify({"error": f"Description must start with a valid predefined task action. Your description began: '{desc_snippet}...'."}), 400
 
         task = Task(
             name=data["name"],
@@ -124,7 +150,7 @@ def create_task():
         )
         tasks_db.append(task)
         save_tasks_to_file()
-        action_logger.info(f"Task created: ID {task.id} - IP: {remote_addr}")
+        action_logger.info(f"Task created: ID {task.id}, Name: '{task.name}', System: '{task.target_system}', Date: {task.date} - IP: {remote_addr}")
         return jsonify(task.to_dict()), 201
     except Exception as e:
         action_logger.error(f"Failed to create task. Data: {request.data if request else 'N/A'} - IP: {remote_addr} - Error: {e}")
@@ -194,6 +220,7 @@ def get_tasks():
             except ValueError as e:
                 action_logger.warning(f"Invalid year filter format: '{filter_year_str}'. Error: {e} - IP: {remote_addr}")
 
+        action_logger.info(f"Retrieved {len(filtered_tasks)} tasks with filters: Date='{filter_date_str}', Week='{filter_week_str}', Month='{filter_month_str}', Year='{filter_year_str}' - IP: {remote_addr}")
         return jsonify([task.to_dict() for task in filtered_tasks])
 
     except Exception as e:
@@ -207,7 +234,7 @@ def get_task(task_id):
     try:
         task = next((t for t in tasks_db if t.id == task_id), None)
         if task:
-            action_logger.info(f"Task retrieved: ID {task_id} - IP: {remote_addr}")
+            action_logger.info(f"Task retrieved: ID {task_id}, Name: '{task.name}' - IP: {remote_addr}")
             return jsonify(task.to_dict())
         else:
             action_logger.warning(f"Task not found: ID {task_id} - IP: {remote_addr}")
@@ -230,13 +257,35 @@ def update_task(task_id):
             action_logger.error(f"Failed to update task: Invalid input (empty data) for ID {task_id} - IP: {remote_addr}")
             return jsonify({"error": "Invalid input"}), 400
 
+        # Validate name if provided
+        if "name" in data and (not data["name"] or not data["name"].strip()):
+            action_logger.error(f"Failed to update task {task_id}: Name cannot be empty. Data: {data} - IP: {remote_addr}")
+            return jsonify({"error": "Task name cannot be empty"}), 400
+
+        # Validate date format if provided
         if "date" in data:
             try:
                 isoparse(data["date"])
             except ValueError:
-                action_logger.error(f"Failed to update task: Invalid date format for {data['date']}. Data: {data} - IP: {remote_addr}")
+                action_logger.error(f"Failed to update task {task_id}: Invalid date format for {data['date']}. Data: {data} - IP: {remote_addr}")
                 return jsonify({"error": "Invalid date format. Please use YYYY-MM-DD."}), 400
 
+        # Validate target system if provided
+        if "target_system" in data and data["target_system"] not in AVAILABLE_SYSTEMS:
+            action_logger.error(f"Failed to update task {task_id}: Invalid target system '{data['target_system']}'. Data: {data} - IP: {remote_addr}")
+            return jsonify({"error": f"Invalid target system: {data['target_system']}"}), 400
+
+        # Validate task action in description if provided
+        if "description" in data:
+            valid_action_found = False
+            for available_action in AVAILABLE_TASK_ACTIONS:
+                if data["description"].startswith(available_action):
+                    valid_action_found = True
+                    break
+            if not valid_action_found:
+                desc_snippet = data["description"][:70] # Log first 70 chars for context
+                action_logger.error(f"Failed to update task {task_id}: Description does not start with a valid task action. Desc: '{desc_snippet}...' - Data: {data} - IP: {remote_addr}")
+                return jsonify({"error": f"Description must start with a valid predefined task action. Your description began: '{desc_snippet}...'."}), 400
 
         task.name = data.get("name", task.name)
         task.description = data.get("description", task.description)
@@ -246,7 +295,7 @@ def update_task(task_id):
         task.status = data.get("status", task.status)
 
         save_tasks_to_file()
-        action_logger.info(f"Task updated: ID {task_id} - IP: {remote_addr}")
+        action_logger.info(f"Task updated: ID {task_id}, Name: '{task.name}', System: '{task.target_system}', Date: {task.date} - IP: {remote_addr}")
         return jsonify(task.to_dict())
     except Exception as e:
         action_logger.error(f"Failed to update task: ID {task_id}. Data: {request.data if request else 'N/A'} - IP: {remote_addr} - Error: {e}")
@@ -271,7 +320,31 @@ def delete_task(task_id):
         return jsonify({"error": "An unexpected error occurred"}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    # Default to values suitable for development if not set in environment
+    # FLASK_DEBUG: '1' or 'true' (case-insensitive) for True, '0' or 'false' for False.
+    # Defaults to True if variable is not set or value is not recognized as False.
+    flask_debug_env = os.environ.get('FLASK_DEBUG', '1').lower()
+    debug_mode = flask_debug_env in ['true', '1', 't', 'yes']
+
+    default_port = 8080 # User preferred default
+    port_env = os.environ.get('FLASK_RUN_PORT')
+    port = default_port
+    if port_env:
+        try:
+            port = int(port_env)
+        except ValueError:
+            print(f"Warning: Invalid FLASK_RUN_PORT value '{port_env}'. Using default port {default_port}.")
+
+    # Get host from environment variable, default to '0.0.0.0' to be accessible on network
+    host = os.environ.get('FLASK_RUN_HOST', '0.0.0.0')
+
+    print(f"--- Starting Flask development server ---")
+    print(f" * FLASK_APP: backend.app:app (Set this env var if using 'flask run')")
+    print(f" * Mode: {'debug' if debug_mode else 'production'}")
+    print(f" * Running on: http://{host}:{port}/ (Press CTRL+C to quit)")
+    print(f" * To override, set FLASK_DEBUG (0 or 1), FLASK_RUN_PORT (e.g., 8080), FLASK_RUN_HOST (e.g., 127.0.0.1).")
+
+    app.run(host=host, port=port, debug=debug_mode)
 
 
 @app.route('/api/config/options', methods=['GET'])

@@ -1,7 +1,7 @@
 import logging
 import os
 
-def setup_logger(name='action_logger', log_file='../logs/actions.log', level=logging.INFO):
+def setup_logger(name='action_logger', log_file='logs/actions.log', level=logging.INFO):
     """
     Sets up a logger that writes to a specified file.
     """

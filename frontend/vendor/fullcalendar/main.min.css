@@ -1,0 +1,6 @@
+/* FullCalendar v6.1.10 main.min.css */
+/* PASTE THE ACTUAL FULLCALENDAR STYLES HERE. */
+
+/* For simulation, if above not populated, some basic styles for the minimal mock: */
+.fc-toolbar-title { font-size: 1.2em; font-weight: bold; text-align: center; color: #333; }
+#calendar { border: 1px dashed #ccc; padding: 10px; min-height: 50px; background-color: #f9f9f9; }
